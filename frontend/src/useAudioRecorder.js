@@ -38,7 +38,8 @@ export function useAudioRecorder(onExtractionComplete) {
       const formData = new FormData();
       formData.append('file', audioBlob, 'speech.webm');
 
-      const res = await fetch('http://localhost:8002/api/extract-from-audio', {
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8002';
+      const res = await fetch(`${apiBaseUrl.replace(/\/$/, '')}/api/extract-from-audio`, {
         method: 'POST',
         body: formData,
       });
