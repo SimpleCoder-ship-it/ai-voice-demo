@@ -4,3 +4,4 @@ openai==3.26.0
 httpx2==2.13.1
 pydantic==2.6.3
 python-multipart==0.0.9
+python-dotenv==1.0.1
