@@ -6,7 +6,7 @@ import {
   Bell, HelpCircle, ListTodo, ChevronDown, ChevronRight,
   Calendar, Clock, MapPin, AlertTriangle, Menu, Plane,
   Cloud, Wind, Users, FileText, CheckCircle2, Paperclip,
-  Download, Save, Send, X, Sparkles, Volume2, Info
+  Download, Save, Send, X, Sparkles, Check, RefreshCw
 } from 'lucide-react';
 import './index.css';
 
@@ -52,7 +52,7 @@ export default function App() {
   const [formData, setFormData] = useState({
     // REPORT HEADER
     mor_vsr: 'MOR',
-    reporter: 'akj (admin)',
+    reporter: '',
     asr_type: [],
 
     // FLIGHT DETAILS
@@ -142,14 +142,12 @@ export default function App() {
   });
 
   const [currentTime, setCurrentTime] = useState('');
-  const [activeTab, setActiveTab] = useState('INCIDENT');
   const [lastExtractedFields, setLastExtractedFields] = useState(0);
   const [showVoiceHelp, setShowVoiceHelp] = useState(false);
 
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
-      // Format as "UTC Time: 10/8/2026, 8:23:31 AM"
       const datePart = `${now.getUTCMonth() + 1}/${now.getUTCDate()}/${now.getUTCFullYear()}`;
       const timePart = now.toLocaleTimeString('en-US', { timeZone: 'UTC', hour12: true });
       setCurrentTime(`UTC Time: ${datePart}, ${timePart}`);
@@ -171,7 +169,6 @@ export default function App() {
           sanitized[key] = val;
           count += val.length;
         } else if (typeof val === 'string' && val.trim() !== '') {
-          // Parse boolean toggles if returned as 'Yes'
           if (['cvr_download_requested', 'techlog_entry', 'atc_informed'].includes(key)) {
             sanitized[key] = val.toLowerCase().includes('yes') || val.toLowerCase().includes('true');
           } else {
@@ -185,17 +182,14 @@ export default function App() {
       }
     });
 
-    // Mirror fallbacks
     if (sanitized.title && !sanitized.incident_title) sanitized.incident_title = sanitized.title;
     if (sanitized.incident_title && !sanitized.title) sanitized.title = sanitized.incident_title;
     if (sanitized.description && !sanitized.incident_description) sanitized.incident_description = sanitized.description;
     if (sanitized.incident_description && !sanitized.description) sanitized.description = sanitized.incident_description;
 
-    // Merge into state
     setFormData((prev) => ({
       ...prev,
       ...sanitized,
-      // If asr_type was extracted as an array, merge or set
       asr_type: Array.isArray(sanitized.asr_type) && sanitized.asr_type.length > 0 
         ? Array.from(new Set([...prev.asr_type, ...sanitized.asr_type]))
         : prev.asr_type
@@ -225,10 +219,10 @@ export default function App() {
   };
 
   const handleReset = () => {
-    if (window.confirm('Are you sure you want to clear the form?')) {
+    if (window.confirm('Clear all form fields?')) {
       setFormData({
         mor_vsr: 'MOR',
-        reporter: 'akj (admin)',
+        reporter: '',
         asr_type: [],
         title: '',
         date_of_occurrence: '',
@@ -307,14 +301,18 @@ export default function App() {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!formData.title || !formData.date_of_occurrence || !formData.flight_no) {
-      alert('Please fill in the required fields marked with * (Title, Date of Occurrence, Flight No).');
+      alert('Please fill in the required fields marked with an asterisk (Title, Date of Occurrence, Flight No).');
       return;
     }
-    alert(`ASR - SMS Form successfully submitted for Flight ${formData.flight_no}!`);
+    alert(`ASR form submitted successfully for Flight ${formData.flight_no}.`);
   };
 
   const SidebarItem = ({ icon: Icon, text, active = false, hasChevron = true }) => (
-    <div className={`flex items-center justify-between px-4 py-2.5 cursor-pointer transition-colors text-xs font-semibold uppercase tracking-wider ${active ? 'bg-slate-700/60 border-l-4 border-teal-400 text-white shadow-inner' : 'text-slate-300 hover:bg-slate-800/60 hover:text-white'}`}>
+    <div className={`flex items-center justify-between px-4 py-2.5 cursor-pointer transition-colors text-xs font-semibold uppercase tracking-wider ${
+      active 
+        ? 'bg-slate-700/60 border-l-4 border-teal-500 text-white' 
+        : 'text-slate-300 hover:bg-slate-800/50 hover:text-white'
+    }`}>
       <div className="flex items-center gap-3">
         <Icon className="w-4 h-4 text-slate-400" />
         <span>{text}</span>
@@ -324,190 +322,202 @@ export default function App() {
   );
 
   return (
-    <div className="flex h-screen bg-[#f4f7fa] font-sans overflow-hidden text-slate-800">
-      {/* Left Sidebar */}
-      <aside className="w-64 bg-[#192b45] text-white flex flex-col h-full flex-shrink-0 z-20 shadow-2xl">
-        <div className="p-4 bg-[#e6f0f3] flex items-center justify-between border-b border-slate-300">
-          <div className="text-xl font-bold text-[#192b45] flex flex-col leading-tight">
-            <span className="text-2xl font-black tracking-tight flex items-center gap-1.5">
-              <Plane className="w-5 h-5 text-teal-600 inline" /> QM<span className="text-teal-600">Smart</span>
+    <div className="flex h-screen bg-[#f1f5f9] font-sans overflow-hidden text-slate-800">
+      {/* Left Navigation Sidebar */}
+      <aside className="w-64 bg-[#111c2e] text-white flex flex-col h-full flex-shrink-0 z-20 shadow-xl border-r border-slate-800">
+        <div className="p-4 bg-[#0d1624] flex items-center justify-between border-b border-slate-800">
+          <div className="text-xl font-bold text-white flex flex-col leading-tight">
+            <span className="text-xl font-black tracking-tight flex items-center gap-2">
+              <Plane className="w-5 h-5 text-teal-400" /> QMSmart
             </span>
-            <span className="text-[9px] tracking-widest text-slate-500 font-semibold uppercase">Aviation Safety & Compliance</span>
+            <span className="text-[10px] tracking-widest text-slate-400 font-medium uppercase mt-0.5">Safety & Quality Systems</span>
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto py-3 custom-scrollbar space-y-0.5">
+        <div className="flex-1 overflow-y-auto py-2 custom-scrollbar space-y-0.5">
           <SidebarItem icon={Home} text="Home" hasChevron={false} />
-          <SidebarItem icon={Settings} text="ADMINISTRATION" />
-          <SidebarItem icon={Briefcase} text="AUDIT MANAGEMENT" />
-          <SidebarItem icon={Shield} text="AUTHORIZATION MANAGEMENT" />
-          <SidebarItem icon={LayoutDashboard} text="DASHBOARDS" />
+          <SidebarItem icon={Settings} text="Administration" />
+          <SidebarItem icon={Briefcase} text="Audit Management" />
+          <SidebarItem icon={Shield} text="Authorization" />
+          <SidebarItem icon={LayoutDashboard} text="Dashboards" />
           <SidebarItem icon={Folder} text="DDS" />
-          <SidebarItem icon={Activity} text="DYNAMIC TASK MANAGEMENT" />
+          <SidebarItem icon={Activity} text="Dynamic Tasks" />
           <SidebarItem icon={AlertTriangle} text="FRAT" />
-          <SidebarItem icon={AlertTriangle} text="INCIDENT & INVESTIGATION" active={true} />
-          <SidebarItem icon={Shield} text="RISK & MOC" />
+          <SidebarItem icon={AlertTriangle} text="Incident & Investigation" active={true} />
+          <SidebarItem icon={Shield} text="Risk & MOC" />
           <SidebarItem icon={Activity} text="SPI" />
           <SidebarItem icon={Activity} text="SPM" />
           <SidebarItem icon={Folder} text="TRMS" />
-          <SidebarItem icon={Folder} text="MASTER DATA" />
-          <SidebarItem icon={Calendar} text="PLANNER" />
+          <SidebarItem icon={Folder} text="Master Data" />
+          <SidebarItem icon={Calendar} text="Planner" />
         </div>
 
-        {/* User Profile Footer */}
-        <div className="border-t border-slate-700/80 p-3 bg-[#132237]">
+        {/* Generic Professional User Profile Footer */}
+        <div className="border-t border-slate-800 p-3 bg-[#0d1624]">
           <div className="flex items-center gap-3 mb-2.5">
-            <div className="w-9 h-9 rounded-full bg-teal-500 flex items-center justify-center text-white font-bold text-xs shadow-md">
-              akj
+            <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-teal-400 text-xs shadow-inner">
+              <Users className="w-4 h-4" />
             </div>
             <div className="leading-tight">
-              <div className="text-xs font-semibold text-white">akj</div>
-              <div className="text-[11px] text-teal-400">admin</div>
-              <div className="text-[10px] text-slate-400">test@qmsmart.net</div>
+              <div className="text-xs font-semibold text-slate-200">Flight Operations</div>
+              <div className="text-[10px] text-teal-400 font-medium">Safety Reporting</div>
             </div>
           </div>
-          <div className="flex items-center justify-between text-slate-400 text-xs py-1 border-t border-slate-700/60">
+          <div className="flex items-center justify-between text-slate-400 text-xs py-1 border-t border-slate-800">
             <div className="flex items-center gap-1.5 cursor-pointer hover:text-white transition-colors">
               <Settings className="w-3.5 h-3.5" /> Settings
             </div>
-            <span className="text-[10px] text-slate-500 font-mono">v1.14.b.6</span>
+            <span className="text-[10px] text-slate-500 font-mono">v1.14.b</span>
           </div>
-          <div className="flex items-center gap-1.5 text-rose-400 hover:text-rose-300 cursor-pointer text-xs pt-1.5 transition-colors">
+          <div className="flex items-center gap-1.5 text-slate-400 hover:text-rose-400 cursor-pointer text-xs pt-1.5 transition-colors">
             <LogOut className="w-3.5 h-3.5" /> Logout
           </div>
         </div>
       </aside>
 
-      {/* Main Container */}
+      {/* Main Panel */}
       <main className="flex-1 flex flex-col h-full overflow-hidden">
-        {/* Top Header */}
-        <header className="h-14 bg-[#e6f0f3] border-b border-slate-200 flex items-center justify-between px-5 shrink-0 z-10 shadow-sm">
+        {/* Top App Header */}
+        <header className="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-5 shrink-0 z-10 shadow-xs">
           <div className="flex items-center gap-4 text-slate-700 text-xs font-medium">
-            <button className="p-1.5 bg-white rounded-md shadow-sm text-slate-700 hover:bg-slate-100 transition-colors">
+            <button className="p-1.5 bg-slate-50 rounded border border-slate-200 text-slate-600 hover:bg-slate-100 transition-colors">
               <Menu className="w-4 h-4" />
             </button>
-            <div className="flex items-center gap-2 bg-white/70 px-2.5 py-1 rounded border border-slate-200">
-              <Clock className="w-3.5 h-3.5 text-teal-600" />
-              <span className="font-mono text-slate-700 font-semibold">{currentTime}</span>
+            <div className="flex items-center gap-2 bg-slate-50 px-2.5 py-1 rounded border border-slate-200 text-slate-600 font-mono">
+              <Clock className="w-3.5 h-3.5 text-slate-500" />
+              <span>{currentTime}</span>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="flex items-center bg-[#192b45] text-white rounded px-2.5 py-1 text-xs font-semibold shadow-sm">
+            <div className="flex items-center bg-slate-100 text-slate-700 rounded px-2.5 py-1 text-xs font-semibold border border-slate-200">
               <span>v1.14.c</span>
             </div>
             
-            <button className="flex items-center gap-1.5 bg-[#192b45] hover:bg-[#253d61] text-white px-3 py-1 rounded text-xs font-medium transition-colors shadow-sm">
-              <ListTodo className="w-3.5 h-3.5 text-teal-400" /> My Task <span className="ml-1 bg-teal-500 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full">10</span>
+            <button className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-900 text-white px-3 py-1.5 rounded text-xs font-medium transition-colors">
+              <ListTodo className="w-3.5 h-3.5 text-teal-400" /> My Tasks <span className="ml-1 bg-teal-600 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full">10</span>
             </button>
 
             <button 
               onClick={() => setShowVoiceHelp(true)}
-              className="flex items-center gap-1 bg-teal-600 hover:bg-teal-700 text-white px-2.5 py-1 rounded text-xs font-semibold shadow-sm transition-colors"
+              className="flex items-center gap-1.5 bg-teal-600 hover:bg-teal-700 text-white px-3 py-1.5 rounded text-xs font-semibold transition-colors"
             >
-              <Sparkles className="w-3.5 h-3.5" /> AI Voice Assistant
+              <Sparkles className="w-3.5 h-3.5" /> Voice Guide
             </button>
             
             <div className="relative cursor-pointer">
-              <div className="w-7 h-7 bg-[#192b45] rounded flex items-center justify-center text-white hover:bg-[#253d61] transition-colors shadow-sm">
-                <Bell className="w-3.5 h-3.5" />
+              <div className="w-8 h-8 rounded border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-colors">
+                <Bell className="w-4 h-4" />
               </div>
-              <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[9px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center shadow-sm">9</span>
+              <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[9px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center">9</span>
             </div>
             
-            <div className="w-7 h-7 bg-[#192b45] rounded flex items-center justify-center text-white cursor-pointer hover:bg-[#253d61] transition-colors shadow-sm">
-              <HelpCircle className="w-3.5 h-3.5" />
+            <div className="w-8 h-8 rounded border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 cursor-pointer transition-colors">
+              <HelpCircle className="w-4 h-4" />
             </div>
           </div>
         </header>
 
-        {/* Content Body */}
+        {/* Scrollable Form Content */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar relative">
           
-          {/* Breadcrumbs & Status Bar */}
+          {/* Breadcrumbs */}
           <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
             <div className="flex items-center gap-2 text-xs text-slate-600 font-medium">
-              <LayoutDashboard className="w-4 h-4 text-slate-500" />
+              <LayoutDashboard className="w-4 h-4 text-slate-400" />
               <span>Dashboard</span>
-              <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+              <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
               <Folder className="w-4 h-4 text-teal-600" />
               <span className="font-semibold text-slate-800">ASR - SMS</span>
-              <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-              <span className="bg-teal-50 text-teal-700 px-2 py-0.5 rounded border border-teal-200 font-semibold">Initial Form Details</span>
+              <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
+              <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded border border-slate-200 font-semibold">Initial Form Details</span>
             </div>
 
-            {/* Extraction notification banner */}
             {lastExtractedFields > 0 && (
-              <div className="flex items-center gap-2 bg-emerald-50 text-emerald-800 border border-emerald-300 px-3 py-1 rounded text-xs shadow-sm animate-fadeIn">
+              <div className="flex items-center gap-2 bg-emerald-50 text-emerald-800 border border-emerald-200 px-3 py-1 rounded text-xs font-medium">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                <span>AI extracted & populated <strong>{lastExtractedFields}</strong> fields from your voice recording!</span>
+                <span>Extracted {lastExtractedFields} fields from audio recording.</span>
               </div>
             )}
           </div>
 
-          {/* Voice Autofill Hero Action Banner */}
-          <div className="bg-gradient-to-r from-[#192b45] via-[#21395c] to-[#124d54] text-white rounded-lg p-4 sm:p-5 mb-6 shadow-md border border-slate-700/50 flex flex-col md:flex-row items-center justify-between gap-4">
+          {/* Clean Enterprise Voice Autofill Banner */}
+          <div className="bg-[#111c2e] text-white rounded-lg p-5 mb-6 border border-slate-800 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg ${
-                isRecording ? 'bg-rose-500 ring-4 ring-rose-400/50 animate-pulse text-white' : 
-                isLoading ? 'bg-amber-500 animate-spin text-white' : 'bg-teal-500 text-white'
+              <div className={`w-11 h-11 rounded-lg flex items-center justify-center transition-all ${
+                isRecording 
+                  ? 'bg-rose-600 ring-4 ring-rose-500/30' 
+                  : isLoading 
+                  ? 'bg-amber-600' 
+                  : 'bg-teal-600'
               }`}>
-                {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Mic className="w-6 h-6" />}
+                {isLoading ? <Loader2 className="w-5 h-5 animate-spin text-white" /> : <Mic className="w-5 h-5 text-white" />}
               </div>
               <div>
-                <h2 className="text-base font-bold flex items-center gap-2">
-                  QMSmart AI Voice Autofill for ASR
-                  <span className="text-[10px] bg-teal-400/20 text-teal-300 font-semibold px-2 py-0.5 rounded border border-teal-400/30">Azure Speech + OpenAI</span>
-                </h2>
-                <p className="text-xs text-slate-300 mt-0.5 max-w-xl">
-                  {isRecording 
-                    ? "🔴 Recording active... Speak flight details (Flight No, Route, Time, Level, Weather, Crew, Occurrence Description)."
-                    : isLoading 
-                    ? "⏳ Transcribing audio with Azure Speech and mapping to ASR fields with Azure OpenAI..."
-                    : "Click the button to record spoken incident report. The AI will listen, analyze, and automatically populate all ASR form sections below."}
+                <div className="flex items-center gap-2">
+                  <h2 className="text-sm font-bold tracking-tight text-white">
+                    AI Voice Autofill
+                  </h2>
+                  <span className="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded border border-slate-700 font-medium">
+                    FastAPI + Azure
+                  </span>
+                </div>
+                <p className="text-xs text-slate-300 mt-1 max-w-xl">
+                  {isRecording ? (
+                    <span className="flex items-center gap-1.5 text-rose-300 font-medium">
+                      <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping inline-block"></span>
+                      Recording in progress. Speak occurrence details clearly (Flight No, Route, Time, Level, Weather, Crew, Occurrence Description).
+                    </span>
+                  ) : isLoading ? (
+                    <span className="flex items-center gap-1.5 text-amber-300 font-medium">
+                      <Loader2 className="w-3.5 h-3.5 animate-spin inline-block" />
+                      Processing audio with Azure Speech and mapping fields with Azure OpenAI...
+                    </span>
+                  ) : (
+                    "Record a spoken incident report to automatically extract and populate all corresponding fields in the ASR sections below."
+                  )}
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 shrink-0">
+            <div className="flex items-center gap-2.5 shrink-0">
               <button
                 type="button"
                 onClick={isRecording ? stopRecording : startRecording}
                 disabled={isLoading}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-md font-bold text-xs uppercase tracking-wider transition-all shadow-md ${
+                className={`flex items-center gap-2 px-4 py-2 rounded font-bold text-xs uppercase tracking-wider transition-all ${
                   isLoading 
-                    ? 'bg-slate-600 text-slate-300 cursor-not-allowed'
+                    ? 'bg-slate-700 text-slate-400 cursor-not-allowed'
                     : isRecording 
-                    ? 'bg-rose-600 hover:bg-rose-700 text-white ring-2 ring-rose-300 animate-pulse'
-                    : 'bg-teal-500 hover:bg-teal-400 text-[#192b45] font-extrabold hover:shadow-teal-500/20'
+                    ? 'bg-rose-600 hover:bg-rose-700 text-white ring-2 ring-rose-400'
+                    : 'bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold'
                 }`}
               >
                 {isLoading ? (
-                  <><Loader2 className="w-4 h-4 animate-spin" /> Processing Audio</>
+                  <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Processing</>
                 ) : isRecording ? (
-                  <><Square className="w-4 h-4" fill="currentColor" /> Stop & Autofill</>
+                  <><Square className="w-3.5 h-3.5" fill="currentColor" /> Stop Recording</>
                 ) : (
-                  <><Mic className="w-4 h-4 text-[#192b45]" /> Record Spoken Report</>
+                  <><Mic className="w-3.5 h-3.5" /> Start Voice Autofill</>
                 )}
               </button>
 
               <button 
                 type="button" 
                 onClick={handleReset}
-                className="px-3 py-2.5 bg-slate-700/60 hover:bg-slate-700 text-slate-300 hover:text-white rounded-md text-xs font-medium transition-colors"
+                className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded text-xs font-medium border border-slate-700 transition-colors"
                 title="Clear all fields"
               >
-                Clear
+                Reset
               </button>
             </div>
           </div>
 
-          {/* ASR - SMS Form Container */}
-          <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-12">
+          {/* Clean Professional Form Card */}
+          <form onSubmit={handleSubmit} className="bg-white rounded-lg border border-slate-200 shadow-xs overflow-hidden mb-12">
             
-            {/* Top Form Header */}
-            <div className="bg-[#f8fafc] border-b border-slate-200 px-6 py-3 flex items-center justify-between">
-              <div className="flex items-center gap-2 text-slate-700 font-bold text-sm uppercase tracking-wide">
+            <div className="bg-slate-50 border-b border-slate-200 px-6 py-3.5 flex items-center justify-between">
+              <div className="flex items-center gap-2 text-slate-800 font-bold text-xs uppercase tracking-wider">
                 <Plane className="w-4 h-4 text-teal-600" />
                 Air Safety Report (ASR - SMS)
               </div>
@@ -516,13 +526,13 @@ export default function App() {
               </div>
             </div>
 
-            <div className="p-6 sm:p-8 space-y-8">
+            <div className="p-6 sm:p-8 space-y-7">
               
               {/* SECTION 1: REPORT HEADER */}
-              <div className="border border-slate-200 rounded-lg p-5 bg-[#fafcfd]">
-                <h3 className="text-xs font-bold text-teal-800 uppercase tracking-wider mb-4 pb-2 border-b border-slate-200 flex items-center gap-2">
-                  <Shield className="w-3.5 h-3.5 text-teal-600" /> 1. REPORT HEADER
-                </h3>
+              <div className="border border-slate-200 rounded-md p-5 bg-white">
+                <div className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4 pb-2 border-b border-slate-100 flex items-center gap-2">
+                  <Shield className="w-3.5 h-3.5 text-teal-600" /> 1. Report Header
+                </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
                   <div>
@@ -532,7 +542,7 @@ export default function App() {
                     <div className="flex items-center gap-3">
                       {['MOR', 'VSR'].map((option) => (
                         <label key={option} className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 border rounded cursor-pointer text-xs font-semibold transition-all ${
-                          formData.mor_vsr === option ? 'bg-teal-50 border-teal-500 text-teal-700 shadow-sm' : 'bg-white border-slate-300 text-slate-600 hover:bg-slate-50'
+                          formData.mor_vsr === option ? 'bg-teal-50 border-teal-500 text-teal-800' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
                         }`}>
                           <input
                             type="radio"
@@ -556,15 +566,15 @@ export default function App() {
                       name="reporter"
                       value={formData.reporter}
                       onChange={handleInputChange}
-                      placeholder="Enter Reporter Name or Staff ID"
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm"
+                      placeholder="Enter reporter name or designation"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white"
                     />
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-2">
-                    ASR TYPE (select applicable categories)
+                    ASR Type (Select applicable categories)
                   </label>
                   <div className="flex flex-wrap gap-2">
                     {ASR_TYPE_OPTIONS.map((type) => {
@@ -574,13 +584,14 @@ export default function App() {
                           type="button"
                           key={type}
                           onClick={() => toggleAsrType(type)}
-                          className={`px-3 py-1.5 rounded text-xs font-medium border transition-all ${
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium border transition-colors ${
                             isSelected 
-                              ? 'bg-teal-600 border-teal-600 text-white shadow-sm font-semibold' 
-                              : 'bg-white border-slate-300 text-slate-600 hover:border-slate-400 hover:bg-slate-50'
+                              ? 'bg-teal-700 border-teal-700 text-white font-semibold shadow-xs' 
+                              : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
                           }`}
                         >
-                          {isSelected && '✓ '} {type}
+                          {isSelected && <Check className="w-3.5 h-3.5 text-white" />}
+                          <span>{type}</span>
                         </button>
                       );
                     })}
@@ -589,10 +600,10 @@ export default function App() {
               </div>
 
               {/* SECTION 2: FLIGHT DETAILS */}
-              <div className="border border-slate-200 rounded-lg p-5 bg-[#fafcfd]">
-                <h3 className="text-xs font-bold text-teal-800 uppercase tracking-wider mb-4 pb-2 border-b border-slate-200 flex items-center gap-2">
-                  <Plane className="w-3.5 h-3.5 text-teal-600" /> 2. FLIGHT DETAILS
-                </h3>
+              <div className="border border-slate-200 rounded-md p-5 bg-white">
+                <div className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4 pb-2 border-b border-slate-100 flex items-center gap-2">
+                  <Plane className="w-3.5 h-3.5 text-teal-600" /> 2. Flight Details
+                </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div className="sm:col-span-2 lg:col-span-4">
@@ -604,8 +615,8 @@ export default function App() {
                       name="title"
                       value={formData.title}
                       onChange={handleInputChange}
-                      placeholder="Enter Title (e.g. Turbulence Encounter during Cruise at FL360)"
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm font-medium"
+                      placeholder="Enter occurrence title"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-800 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white font-medium"
                       required
                     />
                   </div>
@@ -620,7 +631,7 @@ export default function App() {
                         name="date_of_occurrence"
                         value={formData.date_of_occurrence}
                         onChange={handleInputChange}
-                        className="w-full rounded border border-slate-300 pl-3.5 pr-8 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm"
+                        className="w-full rounded border border-slate-300 pl-3.5 pr-8 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white"
                         required
                       />
                       <Calendar className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -637,7 +648,7 @@ export default function App() {
                         name="time_of_occurrence_ist"
                         value={formData.time_of_occurrence_ist}
                         onChange={handleInputChange}
-                        className="w-full rounded border border-slate-300 pl-3.5 pr-8 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm"
+                        className="w-full rounded border border-slate-300 pl-3.5 pr-8 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white"
                       />
                       <Clock className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     </div>
@@ -653,7 +664,7 @@ export default function App() {
                         name="time_of_occurrence_utc"
                         value={formData.time_of_occurrence_utc}
                         onChange={handleInputChange}
-                        className="w-full rounded border border-slate-300 pl-3.5 pr-8 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm"
+                        className="w-full rounded border border-slate-300 pl-3.5 pr-8 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white"
                       />
                       <Clock className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     </div>
@@ -668,8 +679,8 @@ export default function App() {
                       name="flight_duration"
                       value={formData.flight_duration}
                       onChange={handleInputChange}
-                      placeholder="e.g. 02:15"
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm"
+                      placeholder="02:30"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white"
                     />
                   </div>
 
@@ -682,8 +693,8 @@ export default function App() {
                       name="flight_no"
                       value={formData.flight_no}
                       onChange={handleInputChange}
-                      placeholder="Enter Flight No (e.g. QP-142)"
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm font-semibold"
+                      placeholder="e.g. QP-142"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-800 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white font-semibold"
                       required
                     />
                   </div>
@@ -698,7 +709,7 @@ export default function App() {
                       value={formData.registration}
                       onChange={handleInputChange}
                       placeholder="e.g. VT-YAA"
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm font-mono"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white font-mono"
                     />
                   </div>
 
@@ -716,7 +727,7 @@ export default function App() {
                         value={formData.callsign.replace(/^QP-/, '')}
                         onChange={(e) => setFormData({ ...formData, callsign: `QP-${e.target.value}` })}
                         placeholder="Enter CallSign"
-                        className="w-full rounded-r border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm font-mono"
+                        className="w-full rounded-r border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white font-mono"
                       />
                     </div>
                   </div>
@@ -731,28 +742,28 @@ export default function App() {
                       value={formData.location_position}
                       onChange={handleInputChange}
                       placeholder="Complete if not near an airport"
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white"
                     />
                   </div>
                 </div>
               </div>
 
               {/* SECTION 3: ASR - GENERAL (Flight Schedule) */}
-              <div className="border border-slate-200 rounded-lg p-5 bg-[#fafcfd]">
-                <h3 className="text-xs font-bold text-teal-800 uppercase tracking-wider mb-4 pb-2 border-b border-slate-200 flex items-center gap-2">
-                  <Activity className="w-3.5 h-3.5 text-teal-600" /> 3. ASR - GENERAL (Flight Schedule Interface)
-                </h3>
+              <div className="border border-slate-200 rounded-md p-5 bg-white">
+                <div className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4 pb-2 border-b border-slate-100 flex items-center gap-2">
+                  <Activity className="w-3.5 h-3.5 text-teal-600" /> 3. ASR - General (Flight Schedule)
+                </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Flight Schedule's</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Flight Schedule</label>
                     <input
                       type="text"
                       name="flight_schedule"
                       value={formData.flight_schedule}
                       onChange={handleInputChange}
-                      placeholder="Selected Flight Schedule"
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm"
+                      placeholder="Selected schedule reference"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white"
                     />
                   </div>
 
@@ -763,10 +774,9 @@ export default function App() {
                       name="aircraft_type"
                       value={formData.aircraft_type}
                       onChange={handleInputChange}
-                      placeholder="e.g. B737-800, A320neo"
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm font-medium"
+                      placeholder="e.g. B737-800, A320"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white"
                     />
-                    <span className="text-[10px] text-slate-400 block mt-0.5">Auto-capture based on flight schedule</span>
                   </div>
 
                   <div>
@@ -776,8 +786,8 @@ export default function App() {
                       name="flight_status"
                       value={formData.flight_status}
                       onChange={handleInputChange}
-                      placeholder="Flight Status"
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm"
+                      placeholder="Status"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white"
                     />
                   </div>
 
@@ -788,18 +798,18 @@ export default function App() {
                       name="cargo_weight"
                       value={formData.cargo_weight}
                       onChange={handleInputChange}
-                      placeholder="Enter Cargo Weight"
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm font-mono"
+                      placeholder="Weight in kg"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white font-mono"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* SECTION 4: DETAILS (In Cruise OR Near Airport) */}
-              <div className="border border-slate-200 rounded-lg p-5 bg-[#fafcfd]">
-                <h3 className="text-xs font-bold text-teal-800 uppercase tracking-wider mb-4 pb-2 border-b border-slate-200 flex items-center gap-2">
-                  <MapPin className="w-3.5 h-3.5 text-teal-600" /> 4. DETAILS (Position if In Cruise OR Airport if near airport)
-                </h3>
+              {/* SECTION 4: DETAILS (Position & Airport) */}
+              <div className="border border-slate-200 rounded-md p-5 bg-white">
+                <div className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4 pb-2 border-b border-slate-100 flex items-center gap-2">
+                  <MapPin className="w-3.5 h-3.5 text-teal-600" /> 4. Details (Position & Airport)
+                </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                   <div>
@@ -811,8 +821,8 @@ export default function App() {
                       name="departure"
                       value={formData.departure}
                       onChange={handleInputChange}
-                      placeholder="Departure (e.g. BOM / VIDP)"
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm font-semibold"
+                      placeholder="e.g. BOM / VIDP"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-800 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white font-semibold"
                       required
                     />
                   </div>
@@ -826,21 +836,21 @@ export default function App() {
                       name="destination"
                       value={formData.destination}
                       onChange={handleInputChange}
-                      placeholder="Destination (e.g. DEL / VABB)"
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm font-semibold"
+                      placeholder="e.g. DEL / VABB"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-800 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white font-semibold"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Diverted to</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Diverted To</label>
                     <input
                       type="text"
                       name="diverted_to"
                       value={formData.diverted_to}
                       onChange={handleInputChange}
-                      placeholder="Diverted to (if applicable)"
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm"
+                      placeholder="Diversion airport"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white"
                     />
                   </div>
 
@@ -850,9 +860,9 @@ export default function App() {
                       name="flight_phase"
                       value={formData.flight_phase}
                       onChange={handleInputChange}
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white"
                     >
-                      <option value="">Select Flight Phase</option>
+                      <option value="">Select Phase</option>
                       {FLIGHT_PHASES.map((phase) => (
                         <option key={phase} value={phase}>{phase}</option>
                       ))}
@@ -860,14 +870,14 @@ export default function App() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Latitude/Longitude</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Latitude / Longitude</label>
                     <input
                       type="text"
                       name="lat_long"
                       value={formData.lat_long}
                       onChange={handleInputChange}
-                      placeholder="e.g. 19.0896° N, 72.8656° E"
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm"
+                      placeholder="Coordinates"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white"
                     />
                   </div>
 
@@ -878,8 +888,8 @@ export default function App() {
                       name="location_airport"
                       value={formData.location_airport}
                       onChange={handleInputChange}
-                      placeholder="Airport name / code"
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm"
+                      placeholder="Airport name"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white"
                     />
                   </div>
 
@@ -889,7 +899,7 @@ export default function App() {
                       name="nature_of_flight"
                       value={formData.nature_of_flight}
                       onChange={handleInputChange}
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white"
                     >
                       {NATURE_OF_FLIGHT_OPTIONS.map((nature) => (
                         <option key={nature} value={nature}>{nature}</option>
@@ -905,7 +915,7 @@ export default function App() {
                       value={formData.flight_level}
                       onChange={handleInputChange}
                       placeholder="e.g. FL360"
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm font-mono font-semibold"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white font-mono"
                     />
                   </div>
 
@@ -917,7 +927,7 @@ export default function App() {
                       value={formData.altitude_ft}
                       onChange={handleInputChange}
                       placeholder="e.g. 36000"
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm font-mono"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white font-mono"
                     />
                   </div>
 
@@ -929,7 +939,7 @@ export default function App() {
                       value={formData.height_agl_ft}
                       onChange={handleInputChange}
                       placeholder="e.g. 1500"
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm font-mono"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white font-mono"
                     />
                   </div>
 
@@ -941,7 +951,7 @@ export default function App() {
                       value={formData.speed_knots}
                       onChange={handleInputChange}
                       placeholder="e.g. 450"
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm font-mono"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white font-mono"
                     />
                   </div>
 
@@ -953,31 +963,31 @@ export default function App() {
                       value={formData.speed_mach}
                       onChange={handleInputChange}
                       placeholder="e.g. M 0.78"
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm font-mono"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white font-mono"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Number of Crew</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Crew Count</label>
                     <input
                       type="number"
                       name="number_of_crew"
                       value={formData.number_of_crew}
                       onChange={handleInputChange}
                       placeholder="e.g. 6"
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Number of Pax</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Passenger Count</label>
                     <input
                       type="number"
                       name="number_of_pax"
                       value={formData.number_of_pax}
                       onChange={handleInputChange}
                       placeholder="e.g. 174"
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white"
                     />
                   </div>
 
@@ -989,7 +999,7 @@ export default function App() {
                       value={formData.runway_used}
                       onChange={handleInputChange}
                       placeholder="e.g. 27R"
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm font-mono"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white font-mono"
                     />
                   </div>
 
@@ -1000,8 +1010,8 @@ export default function App() {
                       name="runway_condition"
                       value={formData.runway_condition}
                       onChange={handleInputChange}
-                      placeholder="e.g. Dry / Wet / Slush"
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm"
+                      placeholder="Dry / Wet / Slush"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white"
                     />
                   </div>
 
@@ -1013,7 +1023,7 @@ export default function App() {
                       value={formData.rvr}
                       onChange={handleInputChange}
                       placeholder="e.g. 1200m"
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white"
                     />
                   </div>
 
@@ -1024,8 +1034,8 @@ export default function App() {
                       name="takeoff_weight"
                       value={formData.takeoff_weight}
                       onChange={handleInputChange}
-                      placeholder="Enter Take-off Weight"
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm font-mono"
+                      placeholder="e.g. 72000"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white font-mono"
                     />
                   </div>
 
@@ -1036,16 +1046,16 @@ export default function App() {
                       name="landing_weight"
                       value={formData.landing_weight}
                       onChange={handleInputChange}
-                      placeholder="Enter Landing Weight"
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm font-mono"
+                      placeholder="e.g. 64000"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white font-mono"
                     />
                   </div>
                 </div>
 
                 {/* Operations & ATC Toggles */}
-                <div className="pt-3 border-t border-slate-200 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="pt-3 border-t border-slate-100 grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-700">
+                    <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-700">
                       <input
                         type="checkbox"
                         name="cvr_download_requested"
@@ -1056,7 +1066,7 @@ export default function App() {
                       <span>CVR Download Requested</span>
                     </label>
 
-                    <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-700">
+                    <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-700">
                       <input
                         type="checkbox"
                         name="techlog_entry"
@@ -1067,7 +1077,7 @@ export default function App() {
                       <span>Techlog Entry</span>
                     </label>
 
-                    <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-700">
+                    <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-700">
                       <input
                         type="checkbox"
                         name="atc_informed"
@@ -1086,8 +1096,8 @@ export default function App() {
                       name="atc_unit"
                       value={formData.atc_unit}
                       onChange={handleInputChange}
-                      placeholder="Enter ATC Unit (e.g. Mumbai Control)"
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm"
+                      placeholder="ATC frequency or unit"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white"
                     />
                   </div>
 
@@ -1099,7 +1109,7 @@ export default function App() {
                         name="atc_time"
                         value={formData.atc_time}
                         onChange={handleInputChange}
-                        className="w-full rounded border border-slate-300 px-2 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm"
+                        className="w-full rounded border border-slate-300 px-2 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white"
                       />
                     </div>
                     <div>
@@ -1109,8 +1119,8 @@ export default function App() {
                         name="delay"
                         value={formData.delay}
                         onChange={handleInputChange}
-                        placeholder="00:30"
-                        className="w-full rounded border border-slate-300 px-2 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm"
+                        placeholder="00:20"
+                        className="w-full rounded border border-slate-300 px-2 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white"
                       />
                     </div>
                   </div>
@@ -1118,10 +1128,10 @@ export default function App() {
               </div>
 
               {/* SECTION 5: AIRCRAFT CONFIGURATION */}
-              <div className="border border-slate-200 rounded-lg p-5 bg-[#fafcfd]">
-                <h3 className="text-xs font-bold text-teal-800 uppercase tracking-wider mb-4 pb-2 border-b border-slate-200 flex items-center gap-2">
-                  <Settings className="w-3.5 h-3.5 text-teal-600" /> 5. AIRCRAFT CONFIGURATION
-                </h3>
+              <div className="border border-slate-200 rounded-md p-5 bg-white">
+                <div className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4 pb-2 border-b border-slate-100 flex items-center gap-2">
+                  <Settings className="w-3.5 h-3.5 text-teal-600" /> 5. Aircraft Configuration
+                </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                   <div>
@@ -1132,7 +1142,7 @@ export default function App() {
                       value={formData.autopilot}
                       onChange={handleInputChange}
                       placeholder="Engaged / Off"
-                      className="w-full rounded border border-slate-300 px-3 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm"
+                      className="w-full rounded border border-slate-300 px-3 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white"
                     />
                   </div>
 
@@ -1144,7 +1154,7 @@ export default function App() {
                       value={formData.autothrottle}
                       onChange={handleInputChange}
                       placeholder="Engaged / Off"
-                      className="w-full rounded border border-slate-300 px-3 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm"
+                      className="w-full rounded border border-slate-300 px-3 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white"
                     />
                   </div>
 
@@ -1156,7 +1166,7 @@ export default function App() {
                       value={formData.spoilers}
                       onChange={handleInputChange}
                       placeholder="Armed / Retracted"
-                      className="w-full rounded border border-slate-300 px-3 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm"
+                      className="w-full rounded border border-slate-300 px-3 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white"
                     />
                   </div>
 
@@ -1168,7 +1178,7 @@ export default function App() {
                       value={formData.flap_setting}
                       onChange={handleInputChange}
                       placeholder="Flaps 1, 5, 15, 30"
-                      className="w-full rounded border border-slate-300 px-3 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm"
+                      className="w-full rounded border border-slate-300 px-3 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white"
                     />
                   </div>
 
@@ -1180,7 +1190,7 @@ export default function App() {
                       value={formData.slats}
                       onChange={handleInputChange}
                       placeholder="Extended / Retracted"
-                      className="w-full rounded border border-slate-300 px-3 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm"
+                      className="w-full rounded border border-slate-300 px-3 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white"
                     />
                   </div>
 
@@ -1192,17 +1202,17 @@ export default function App() {
                       value={formData.landing_gear}
                       onChange={handleInputChange}
                       placeholder="Up / Down"
-                      className="w-full rounded border border-slate-300 px-3 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm"
+                      className="w-full rounded border border-slate-300 px-3 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white"
                     />
                   </div>
                 </div>
               </div>
 
               {/* SECTION 6: DESCRIPTION */}
-              <div className="border border-slate-200 rounded-lg p-5 bg-[#fafcfd]">
-                <h3 className="text-xs font-bold text-teal-800 uppercase tracking-wider mb-4 pb-2 border-b border-slate-200 flex items-center gap-2">
-                  <FileText className="w-3.5 h-3.5 text-teal-600" /> 6. DESCRIPTION
-                </h3>
+              <div className="border border-slate-200 rounded-md p-5 bg-white">
+                <div className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4 pb-2 border-b border-slate-100 flex items-center gap-2">
+                  <FileText className="w-3.5 h-3.5 text-teal-600" /> 6. Occurrence Description
+                </div>
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1.5">
@@ -1213,22 +1223,22 @@ export default function App() {
                     value={formData.description}
                     onChange={handleInputChange}
                     rows={5}
-                    placeholder="Provide a full narrative description of the occurrence, sequence of events, operational impact, crew actions taken, and current status..."
-                    className="w-full rounded border border-slate-300 px-4 py-3 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm leading-relaxed"
+                    placeholder="Provide a detailed narrative of the occurrence including sequence of events, symptoms, crew actions, and outcome..."
+                    className="w-full rounded border border-slate-300 px-4 py-3 text-xs text-slate-800 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white leading-relaxed"
                     required
                   />
                   <div className="flex justify-between items-center text-[10px] text-slate-400 mt-1">
-                    <span>Be thorough in detailing symptoms, warnings, indications, and communications.</span>
+                    <span>Ensure all indications, altitudes, and communications are noted.</span>
                     <span>{formData.description.length} characters</span>
                   </div>
                 </div>
               </div>
 
               {/* SECTION 7: CREW */}
-              <div className="border border-slate-200 rounded-lg p-5 bg-[#fafcfd]">
-                <h3 className="text-xs font-bold text-teal-800 uppercase tracking-wider mb-4 pb-2 border-b border-slate-200 flex items-center gap-2">
-                  <Users className="w-3.5 h-3.5 text-teal-600" /> 7. CREW
-                </h3>
+              <div className="border border-slate-200 rounded-md p-5 bg-white">
+                <div className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4 pb-2 border-b border-slate-100 flex items-center gap-2">
+                  <Users className="w-3.5 h-3.5 text-teal-600" /> 7. Crew
+                </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div>
@@ -1238,8 +1248,8 @@ export default function App() {
                       name="captain"
                       value={formData.captain}
                       onChange={handleInputChange}
-                      placeholder="Captain Name"
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm font-medium"
+                      placeholder="Captain name"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white font-medium"
                     />
                   </div>
 
@@ -1250,8 +1260,8 @@ export default function App() {
                       name="first_officer"
                       value={formData.first_officer}
                       onChange={handleInputChange}
-                      placeholder="First Officer Name"
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm font-medium"
+                      placeholder="First Officer name"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white font-medium"
                     />
                   </div>
 
@@ -1263,67 +1273,67 @@ export default function App() {
                       value={formData.sccm}
                       onChange={handleInputChange}
                       placeholder="Senior Cabin Crew Member"
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">CCM1</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">CCM 1</label>
                     <input
                       type="text"
                       name="ccm1"
                       value={formData.ccm1}
                       onChange={handleInputChange}
-                      placeholder="CCM1 Name"
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm"
+                      placeholder="Cabin Crew Member 1"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">CCM2</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">CCM 2</label>
                     <input
                       type="text"
                       name="ccm2"
                       value={formData.ccm2}
                       onChange={handleInputChange}
-                      placeholder="CCM2 Name"
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm"
+                      placeholder="Cabin Crew Member 2"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">CCM3</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">CCM 3</label>
                     <input
                       type="text"
                       name="ccm3"
                       value={formData.ccm3}
                       onChange={handleInputChange}
-                      placeholder="CCM3 Name"
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm"
+                      placeholder="Cabin Crew Member 3"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">CCM4</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">CCM 4</label>
                     <input
                       type="text"
                       name="ccm4"
                       value={formData.ccm4}
                       onChange={handleInputChange}
-                      placeholder="CCM4 Name"
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm"
+                      placeholder="Cabin Crew Member 4"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">CCM5</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">CCM 5</label>
                     <input
                       type="text"
                       name="ccm5"
                       value={formData.ccm5}
                       onChange={handleInputChange}
-                      placeholder="CCM5 Name"
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm"
+                      placeholder="Cabin Crew Member 5"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white"
                     />
                   </div>
 
@@ -1335,7 +1345,7 @@ export default function App() {
                       value={formData.observer}
                       onChange={handleInputChange}
                       placeholder="Observer"
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white"
                     />
                   </div>
 
@@ -1347,52 +1357,52 @@ export default function App() {
                       value={formData.observer_2}
                       onChange={handleInputChange}
                       placeholder="Observer 2"
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white"
                     />
                   </div>
                 </div>
               </div>
 
               {/* SECTION 8: FLIGHT METEOROLOGICAL */}
-              <div className="border border-slate-200 rounded-lg p-5 bg-[#fafcfd]">
-                <h3 className="text-xs font-bold text-teal-800 uppercase tracking-wider mb-4 pb-2 border-b border-slate-200 flex items-center gap-2">
-                  <Cloud className="w-3.5 h-3.5 text-teal-600" /> 8. FLIGHT METEOROLOGICAL
-                </h3>
+              <div className="border border-slate-200 rounded-md p-5 bg-white">
+                <div className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4 pb-2 border-b border-slate-100 flex items-center gap-2">
+                  <Cloud className="w-3.5 h-3.5 text-teal-600" /> 8. Flight Meteorological
+                </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Wind Bearing (degs)</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Wind Bearing (deg)</label>
                     <input
                       type="text"
                       name="wind_bearing"
                       value={formData.wind_bearing}
                       onChange={handleInputChange}
                       placeholder="e.g. 270"
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm font-mono"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white font-mono"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Wind Velocity (knots)</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Wind Velocity (kt)</label>
                     <input
                       type="text"
                       name="wind_velocity"
                       value={formData.wind_velocity}
                       onChange={handleInputChange}
                       placeholder="e.g. 15"
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm font-mono"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white font-mono"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Temperature (degs C)</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Temperature (°C)</label>
                     <input
                       type="text"
                       name="temperature_c"
                       value={formData.temperature_c}
                       onChange={handleInputChange}
                       placeholder="e.g. 24"
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm font-mono"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white font-mono"
                     />
                   </div>
 
@@ -1404,7 +1414,7 @@ export default function App() {
                       value={formData.qnh}
                       onChange={handleInputChange}
                       placeholder="e.g. 1013"
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm font-mono"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white font-mono"
                     />
                   </div>
 
@@ -1416,17 +1426,17 @@ export default function App() {
                       value={formData.visibility_m}
                       onChange={handleInputChange}
                       placeholder="e.g. 5000"
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm font-mono"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white font-mono"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Meteorological</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Condition</label>
                     <select
                       name="meteorological_condition"
                       value={formData.meteorological_condition}
                       onChange={handleInputChange}
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white"
                     >
                       <option value="">Select Condition</option>
                       <option value="VMC">VMC (Visual)</option>
@@ -1440,7 +1450,7 @@ export default function App() {
                       name="light_condition"
                       value={formData.light_condition}
                       onChange={handleInputChange}
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white"
                     >
                       <option value="">Select Light</option>
                       <option value="Day">Day</option>
@@ -1458,7 +1468,7 @@ export default function App() {
                       value={formData.cloud_ceiling_ft}
                       onChange={handleInputChange}
                       placeholder="e.g. 3000"
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm font-mono"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white font-mono"
                     />
                   </div>
 
@@ -1470,7 +1480,7 @@ export default function App() {
                       value={formData.precipitation}
                       onChange={handleInputChange}
                       placeholder="None / Rain / Hail"
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white"
                     />
                   </div>
 
@@ -1480,7 +1490,7 @@ export default function App() {
                       name="icing"
                       value={formData.icing}
                       onChange={handleInputChange}
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white"
                     >
                       <option value="">Select Icing</option>
                       <option value="None">None</option>
@@ -1497,7 +1507,7 @@ export default function App() {
                       name="turbulence"
                       value={formData.turbulence}
                       onChange={handleInputChange}
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white"
                     >
                       <option value="">Select Turbulence</option>
                       <option value="None">None</option>
@@ -1513,7 +1523,7 @@ export default function App() {
                       name="flying_sun"
                       value={formData.flying_sun}
                       onChange={handleInputChange}
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white"
                     >
                       <option value="">Select Direction</option>
                       <option value="Into the Sun">Into the Sun</option>
@@ -1528,40 +1538,40 @@ export default function App() {
                       name="additional_info"
                       value={formData.additional_info}
                       onChange={handleInputChange}
-                      placeholder="Any supplementary meteorological or ambient operational details"
-                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm"
+                      placeholder="Supplementary meteorological details"
+                      className="w-full rounded border border-slate-300 px-3.5 py-2 text-xs text-slate-700 focus:ring-1 focus:ring-teal-600 focus:border-teal-600 bg-white"
                     />
                   </div>
                 </div>
               </div>
 
               {/* SECTION 9: ATTACHMENTS */}
-              <div className="border border-slate-200 rounded-lg p-5 bg-[#fafcfd]">
-                <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-200">
-                  <h3 className="text-xs font-bold text-teal-800 uppercase tracking-wider flex items-center gap-2">
-                    <Paperclip className="w-3.5 h-3.5 text-teal-600" /> 9. ATTACHMENTS
-                  </h3>
+              <div className="border border-slate-200 rounded-md p-5 bg-white">
+                <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-100">
+                  <div className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                    <Paperclip className="w-3.5 h-3.5 text-teal-600" /> 9. Attachments
+                  </div>
                   <button type="button" className="text-xs font-semibold text-teal-600 hover:text-teal-700 flex items-center gap-1">
-                    + Upload Attachment
+                    Upload File
                   </button>
                 </div>
 
-                <div className="border border-dashed border-slate-300 rounded-md p-6 text-center bg-white">
-                  <Paperclip className="w-6 h-6 text-slate-400 mx-auto mb-2" />
-                  <p className="text-xs text-slate-500 font-medium">No records found</p>
-                  <p className="text-[11px] text-slate-400 mt-0.5">Drag and drop FDR logs, photos, or ATC transcripts here</p>
+                <div className="border border-dashed border-slate-300 rounded p-6 text-center bg-slate-50">
+                  <Paperclip className="w-5 h-5 text-slate-400 mx-auto mb-1.5" />
+                  <p className="text-xs text-slate-600 font-medium">No attachments uploaded</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Attach relevant flight data, photos, or ATC logs</p>
                 </div>
               </div>
 
             </div>
 
-            {/* Form Footer Action Bar */}
-            <div className="bg-[#f8fafc] border-t border-slate-200 px-6 py-4 flex flex-wrap items-center justify-between gap-3">
+            {/* Bottom Actions */}
+            <div className="bg-slate-50 border-t border-slate-200 px-6 py-4 flex flex-wrap items-center justify-between gap-3">
               <button
                 type="button"
-                className="flex items-center gap-2 px-3.5 py-2 border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 rounded text-xs font-semibold shadow-sm transition-colors"
+                className="flex items-center gap-2 px-3.5 py-2 border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 rounded text-xs font-semibold transition-colors"
               >
-                <Download className="w-3.5 h-3.5 text-slate-500" /> Download ASR EMPTY FORM
+                <Download className="w-3.5 h-3.5 text-slate-500" /> Download Blank Form
               </button>
 
               <div className="flex items-center gap-2.5">
@@ -1574,14 +1584,14 @@ export default function App() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => alert('Draft saved successfully to local storage.')}
-                  className="flex items-center gap-1.5 px-4 py-2 border border-teal-600 bg-white hover:bg-teal-50 text-teal-700 rounded text-xs font-semibold shadow-sm transition-colors"
+                  onClick={() => alert('Draft saved.')}
+                  className="flex items-center gap-1.5 px-4 py-2 border border-teal-600 bg-white hover:bg-teal-50 text-teal-700 rounded text-xs font-semibold transition-colors"
                 >
                   <Save className="w-3.5 h-3.5" /> Save Draft
                 </button>
                 <button
                   type="submit"
-                  className="flex items-center gap-1.5 px-6 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded text-xs font-bold shadow-md transition-colors"
+                  className="flex items-center gap-1.5 px-6 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded text-xs font-bold transition-colors shadow-xs"
                 >
                   <Send className="w-3.5 h-3.5" /> Submit Report
                 </button>
@@ -1593,13 +1603,13 @@ export default function App() {
         </div>
       </main>
 
-      {/* Voice Prompt Instructions Modal */}
+      {/* Voice Prompt Help Modal */}
       {showVoiceHelp && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden">
-            <div className="bg-[#192b45] text-white p-4 flex items-center justify-between">
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-lg w-full border border-slate-300 shadow-xl overflow-hidden">
+            <div className="bg-[#111c2e] text-white p-4 flex items-center justify-between">
               <div className="flex items-center gap-2 font-bold text-sm">
-                <Sparkles className="w-4 h-4 text-teal-400" /> How to use AI Voice Autofill
+                <Sparkles className="w-4 h-4 text-teal-400" /> Spoken Reporting Format
               </div>
               <button onClick={() => setShowVoiceHelp(false)} className="text-slate-400 hover:text-white">
                 <X className="w-4 h-4" />
@@ -1607,21 +1617,21 @@ export default function App() {
             </div>
             <div className="p-5 text-xs text-slate-600 space-y-3 leading-relaxed">
               <p>
-                Click <strong>"Record Spoken Report"</strong> and naturally describe your flight safety occurrence. You can speak freely or use standard aviation pilot reporting format:
+                Click <strong>"Start Voice Autofill"</strong> and speak your report in natural pilot reporting sequence:
               </p>
-              <div className="bg-slate-50 border border-slate-200 p-3 rounded text-[11px] font-mono text-slate-800">
-                "This is Captain Rohit reporting for flight QP 842, aircraft VT-YAA from Mumbai to Delhi on 8th October. While cruising at Flight Level 350 at 440 knots, we encountered severe turbulence and moderate icing at 04:30 UTC. Autopilot disconnected. First officer was Rahul. ATC was informed and we requested descent to Flight Level 290."
+              <div className="bg-slate-50 border border-slate-200 p-3 rounded font-mono text-[11px] text-slate-800 leading-relaxed">
+                "Flight QP 842, aircraft registration VT-YAA from Mumbai to Delhi on October 8th. Cruising at Flight Level 350 at 440 knots, encountered severe turbulence and moderate icing at 04:30 UTC. Autopilot disengaged. Captain Rohit and First Officer Rahul. ATC informed."
               </div>
               <p>
-                When done, click <strong>"Stop & Autofill"</strong>. Azure Speech converts the speech to text, and Azure OpenAI extracts and maps every flight detail directly into the ASR sections!
+                Click <strong>"Stop Recording"</strong> when finished. Azure Speech and Azure OpenAI will transcribe the audio and populate the fields automatically.
               </p>
             </div>
             <div className="bg-slate-50 border-t border-slate-200 p-3 flex justify-end">
               <button 
                 onClick={() => setShowVoiceHelp(false)}
-                className="px-4 py-1.5 bg-teal-600 text-white rounded text-xs font-bold hover:bg-teal-700"
+                className="px-4 py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded text-xs font-semibold"
               >
-                Got It
+                Close
               </button>
             </div>
           </div>
